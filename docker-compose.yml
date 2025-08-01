@@ -1,15 +1,39 @@
-version: '3.8'
 services:
   postgres:
     image: postgres:latest
     container_name: postgres_container
     environment:
-      POSTGRES_USER: rayyan
-      POSTGRES_PASSWORD: 123
+      POSTGRES_USER: 'rayyan'
+      POSTGRES_PASSWORD: '123'
       POSTGRES_DB: app
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    networks:
+      - appnetwork
+  sticky_note_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sticky_note_app
+    ports:
+      - "3030:3030"
+    depends_on:
+      - postgres
+    environment:
+      - POSTGRES_HOST=postgres_container
+      - POSTGRES_USER=rayyan
+      - POSTGRES_PASSWORD=123
+      - POSTGRES_DB=app
+      - DATABASE_URL=postgresql://rayyan:123@postgres_container:5432/app
+    networks:
+      - appnetwork
+networks:
+  appnetwork:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.19.0.0/16
 volumes:
   postgres_data:
